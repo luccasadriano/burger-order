@@ -1,11 +1,8 @@
 import { Controller, Logger, UseFilters } from '@nestjs/common'
-import { MessagePattern, Payload } from '@nestjs/microservices'
-import { ApiBody } from '@nestjs/swagger'
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices'
 import { BurgerService } from './burger.service'
-import { BurgerDto } from './dtos/burger.dto'
-import { BurgerEntity } from './entity/burger.entity'
 import { HttpExceptionFilter } from './exceptionFilter/htttpException.filter'
-import { Iburger } from './types/burger.interface'
+import { Iburger, IburgerInput } from './types/burger.interface'
 
 @Controller()
 export class BurgerController {
@@ -15,24 +12,43 @@ export class BurgerController {
 
   @MessagePattern('find-all-burger')
   @UseFilters(HttpExceptionFilter)
-  async index(): Promise<BurgerEntity[]> {
+  async index(): Promise<Iburger[]> {
     return await this.burgerService.findAll()
   }
 
   @MessagePattern('find-burger')
   @UseFilters(HttpExceptionFilter)
-  async find(@Payload() data: number): Promise<Iburger> {
-    console.log(data)
-
-    return await this.burgerService.find(data)
+  async find(@Payload() id: number): Promise<Iburger> {
+    return await this.burgerService.find(id)
   }
 
   @MessagePattern('mount-burger')
-  @ApiBody({ type: BurgerDto })
   @UseFilters(HttpExceptionFilter)
-  async rankingBurguer(@Payload() data: BurgerDto): Promise<BurgerEntity> {
-    console.log(data)
-
+  async rankingBurguer(@Payload() data: IburgerInput): Promise<Iburger> {
     return await this.burgerService.mountBurger(data)
+  }
+
+  @EventPattern('update-burger')
+  @UseFilters(HttpExceptionFilter)
+  async updateBurger(@Payload() data: IburgerInput): Promise<void> {
+    return await this.burgerService.updateBurger(data)
+  }
+
+  @EventPattern('delete-burger')
+  @UseFilters(HttpExceptionFilter)
+  async remove(@Payload() id: number): Promise<void> {
+    return await this.burgerService.remove(id)
+  }
+
+  @EventPattern('activate-burger')
+  @UseFilters(HttpExceptionFilter)
+  async activate(@Payload() data: any): Promise<void> {
+    return await this.burgerService.activate(data)
+  }
+
+  @EventPattern('inactivate-burger')
+  @UseFilters(HttpExceptionFilter)
+  async inactivate(@Payload() data: any): Promise<void> {
+    return await this.burgerService.inactivate(data)
   }
 }

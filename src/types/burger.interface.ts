@@ -6,4 +6,5 @@ export interface Iburger {
   burgers: string
   ingredients: string
   additionals: string
+  status?: 'ACTIVATE' | 'INACTIVATE'
 }

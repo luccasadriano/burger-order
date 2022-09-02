@@ -2,26 +2,21 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { BurgerEntity } from './entity/burger.entity'
-// import { ProducerService } from './kafka/producer.service'
 import { Iburger, IburgerInput } from './types/burger.interface'
 
 @Injectable()
 export class BurgerService {
   constructor(
     @InjectRepository(BurgerEntity)
-    private burgerRepository: Repository<BurgerEntity>, // private readonly producerService: ProducerService,
+    private burgerRepository: Repository<BurgerEntity>,
   ) {}
 
   async findAll(): Promise<BurgerEntity[]> {
-    // await this.producerService.produce({
-    //   topic: 'test',
-    //   messages: [
-    //     {
-    //       value: 'Hello World!',
-    //     },
-    //   ],
-    // })
-    return await this.burgerRepository.find()
+    return await this.burgerRepository.find({
+      where: {
+        status: 'ACTIVATE',
+      },
+    })
   }
 
   async find(id: number): Promise<Iburger> {
@@ -35,25 +30,36 @@ export class BurgerService {
   }
 
   async mountBurger(input: IburgerInput): Promise<BurgerEntity> {
-    // const { breads, burgers, ingredients, additional } = input
-    // console.log(breads, burgers, ingredients, additional)
-
-    // await this.producerService.produce({
-    //   topic: 'mountBurger',
-    //   messages: [
-    //     { value: breads },
-    //     { value: burgers },
-    //     { value: ingredients },
-    //     { value: additional },
-    //   ],
-    // })
-
     const response = await this.burgerRepository.save(input)
-
-    // console.log('mount burger --->', response)
-    // const strig =
-    //   'Qual será o ranking do seu burger? Só aguardar que receberar no seu email o seu ranking'
-
     return response
+  }
+
+  async updateBurger({
+    id,
+    additionals,
+    breads,
+    burgers,
+    ingredients,
+  }: Iburger): Promise<void> {
+    const burger = await this.find(id)
+
+    burger.breads = breads ? breads : burger.breads
+    burger.burgers = burgers ? burgers : burger.burgers
+    burger.ingredients = ingredients ? ingredients : burger.ingredients
+    burger.additionals = additionals ? additionals : burger.additionals
+
+    await this.burgerRepository.save(burger)
+  }
+
+  async remove(id: number): Promise<void> {
+    await this.burgerRepository.delete(id)
+  }
+
+  async activate(id: number): Promise<void> {
+    await this.burgerRepository.update(id, { status: 'ACTIVATE' })
+  }
+
+  async inactivate(id: number): Promise<void> {
+    await this.burgerRepository.update(id, { status: 'INACTIVATE' })
   }
 }

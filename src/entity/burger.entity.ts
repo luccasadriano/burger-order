@@ -16,4 +16,7 @@ export class BurgerEntity {
 
   @Column({ nullable: true })
   additionals: string
+
+  @Column({ default: 'ACTIVATE', nullable: true })
+  status: 'ACTIVATE' | 'INACTIVATE'
 }
