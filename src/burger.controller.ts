@@ -2,7 +2,7 @@ import { Controller, Logger, UseFilters } from '@nestjs/common'
 import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices'
 import { BurgerService } from './burger.service'
 import { HttpExceptionFilter } from './exceptionFilter/htttpException.filter'
-import { Iburger, IburgerInput } from './types/burger.interface'
+import { Iburger, IburgerInput, IMountburger } from './types/burger.interface'
 
 @Controller()
 export class BurgerController {
@@ -24,7 +24,7 @@ export class BurgerController {
 
   @MessagePattern('mount-burger')
   @UseFilters(HttpExceptionFilter)
-  async rankingBurguer(@Payload() data: IburgerInput): Promise<Iburger> {
+  async mountBurger(@Payload() data: IMountburger): Promise<Iburger> {
     return await this.burgerService.mountBurger(data)
   }
 

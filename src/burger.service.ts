@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { BurgerEntity } from './entity/burger.entity'
-import { Iburger, IburgerInput } from './types/burger.interface'
+import { ProducerService } from './kafka/producer.service'
+import { Iburger, IburgerInput, IMountburger } from './types/burger.interface'
 
 @Injectable()
 export class BurgerService {
   constructor(
     @InjectRepository(BurgerEntity)
     private burgerRepository: Repository<BurgerEntity>,
+    private readonly producer: ProducerService,
   ) {}
 
   async findAll(): Promise<BurgerEntity[]> {
@@ -29,8 +31,30 @@ export class BurgerService {
     return { ...response }
   }
 
-  async mountBurger(input: IburgerInput): Promise<BurgerEntity> {
-    const response = await this.burgerRepository.save(input)
+  async mountBurger(input: IMountburger): Promise<BurgerEntity> {
+    const { additionals, breads, burgers, ingredients, contacts } = input
+    const burger = {
+      additionals,
+      breads,
+      burgers,
+      ingredients,
+    }
+
+    const response = await this.burgerRepository.save(burger)
+
+    const { id } = response
+
+    const contact = { id, ...contacts }
+
+    await this.producer.produce({
+      topic: 'notification-email',
+      messages: [
+        {
+          value: JSON.stringify(contact),
+        },
+      ],
+    })
+
     return response
   }
 
